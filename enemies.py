@@ -6,12 +6,12 @@ def get_sprite(row, col, sprite_width, sprite_height, spritesheet):
     sprite = spritesheet.subsurface(pygame.Rect(x, y, sprite_width, sprite_height))
     return sprite
 
-class Guerrero():
-    def __init__(self,x,y,max_hp,fuerza):
+class Bandit():
+    def __init__(self,x,y,max_hp,daño):
         self.max_hp = max_hp,
-        self.fuerza = fuerza,
+        self.daño = daño,
         self.vivo = True,
-        img = pygame.image.load(f'images/Heroes/Guerrero/Idle/0.png')
+        img = pygame.image.load(f'images/Enemies/Bandit/Idle/0.png')
         self.image = pygame.transform.scale(img, (img.get_width()*3, img.get_height()*3))
         self.rect  = self.image.get_rect()
         self.x = x
@@ -26,16 +26,17 @@ class Guerrero():
     def get_y (self):
         return self.y
 
-class Mago():
+
+class Orco():
     def __init__(self,x,y,max_hp,daño):
         self.max_hp = max_hp,
         self.daño = daño,
         self.vivo = True,
-        spritesheet = pygame.image.load(f'images/Heroes/Mago/mago.png')
+        spritesheet = pygame.image.load(f'images/Enemies/Orc/orcsheet.png')
         spritesheet_width = spritesheet.get_width()
         spritesheet_height = spritesheet.get_height()
         rows = 4
-        cols = 5
+        cols = 3
         sprite_width = spritesheet_width // cols
         sprite_height = spritesheet_height // rows
         image = get_sprite(0,0,sprite_width,sprite_height,spritesheet)
@@ -52,40 +53,45 @@ class Mago():
     def get_y (self):
         return self.y
 
-class Arquero():
+class Zombie():
     def __init__(self,x,y,max_hp,daño):
         self.max_hp = max_hp,
         self.daño = daño,
         self.vivo = True,
-        spritesheet = pygame.image.load(f'images/Heroes/Cazadora/cazadora.png')
-        spritesheet_width = spritesheet.get_width()
-        spritesheet_height = spritesheet.get_height()
-        rows = 1
-        cols = 4
-        sprite_width = spritesheet_width // cols
-        sprite_height = spritesheet_height // rows
-        image = get_sprite(0,0,sprite_width,sprite_height,spritesheet)
-        image = pygame.transform.flip(image,True,False)
-        self.image = pygame.transform.scale(image,(image.get_width()*0.5, image.get_height()*0.5))
+        img = pygame.image.load(f'images/Enemies/Zombie/Idle/__Zombie01_Idle_000.png')
+        img = pygame.transform.flip(img,True,False)
+        self.image = pygame.transform.scale(img, (img.get_width()*0.25, img.get_height()*0.25))
+        self.rect  = self.image.get_rect()
         self.x = x
         self.y = y
-        self.rect  = self.image.get_rect()
         self.rect.center = (x,y)
 
     def draw(self,screen):
         screen.blit(self.image,self.rect)
+
     def get_x (self):
         return self.x
     def get_y (self):
         return self.y
 
-class Sala():
-    def __init__(self,num,enemies):
-        Enemies = []
-        for enemy in enemies:
-            Enemies.append(enemy)
-        self.Enemies = Enemies
-        self.terminada = False        
-        self.num = num
 
+class Esqueleto():
+    def __init__(self,x,y,max_hp,daño):
+        self.max_hp = max_hp,
+        self.daño = daño,
+        self.vivo = True,
+        img = pygame.image.load(f'images/Enemies/Esqueleto/Idle/left/idle_left0000.png')
+        img = pygame.transform.flip(img,True,False)
+        self.image = pygame.transform.scale(img, (img.get_width()*3, img.get_height()*3))
+        self.rect  = self.image.get_rect()
+        self.x = x
+        self.y = y
+        self.rect.center = (x,y)
 
+    def draw(self,screen):
+        screen.blit(self.image,self.rect)
+
+    def get_x (self):
+        return self.x
+    def get_y (self):
+        return self.y
