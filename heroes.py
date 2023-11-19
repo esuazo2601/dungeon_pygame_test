@@ -7,56 +7,100 @@ def get_sprite(row, col, sprite_width, sprite_height, spritesheet):
     return sprite
 
 class Guerrero():
-    def __init__(self,x,y,max_hp,fuerza):
-        self.max_hp = max_hp,
-        self.fuerza = fuerza,
-        self.vivo = True,
-        img = pygame.image.load(f'images/Heroes/Guerrero/Idle/0.png')
-        self.image = pygame.transform.scale(img, (img.get_width()*3, img.get_height()*3))
-        self.rect  = self.image.get_rect()
+    def __init__(self, x, y, max_hp, fuerza):
+        self.max_hp = max_hp
+        self.fuerza = fuerza
+        self.hp = max_hp  # Añade el campo hp
+        self.vivo = True
+        self.animation_list = []
+        self.frame_index = 0
+        self.update_time = pygame.time.get_ticks()
+
+        for i in range(8):
+            img = pygame.image.load(f'images/Heroes/Guerrero/Idle/{i}.png')
+            img = pygame.transform.scale(img, (img.get_width()*3, img.get_height()*3))
+            self.animation_list.append(img)
+        self.image = self.animation_list[self.frame_index]
+        
+        self.rect = self.image.get_rect()
         self.x = x
         self.y = y
-        self.rect.center = (x,y)
+        self.rect.center = (x, y)
 
-    def draw(self,screen):
-        screen.blit(self.image,self.rect)
+    def draw(self, screen):
+        screen.blit(self.image, self.rect)
 
-    def get_x (self):
+    def update(self):
+        animation_cooldown = 100
+        # handle animation
+        # update image
+        self.image = self.animation_list[self.frame_index]
+        if pygame.time.get_ticks() - self.update_time > animation_cooldown:
+            self.update_time = pygame.time.get_ticks()
+            self.frame_index += 1
+        if self.frame_index >= len(self.animation_list):
+            self.frame_index = 0
+
+    def get_x(self):
         return self.x
-    def get_y (self):
+
+    def get_y(self):
         return self.y
 
 class Mago():
-    def __init__(self,x,y,max_hp,daño):
-        self.max_hp = max_hp,
-        self.daño = daño,
-        self.vivo = True,
-        spritesheet = pygame.image.load(f'images/Heroes/Mago/mago.png')
+    def __init__(self, x, y, max_hp, daño):
+        self.max_hp = max_hp
+        self.daño = daño
+        self.hp = max_hp  # Añade el campo hp
+        self.vivo = True
+        spritesheet = pygame.image.load(f'images/Heroes/Mago/Idle.png')
         spritesheet_width = spritesheet.get_width()
         spritesheet_height = spritesheet.get_height()
-        rows = 4
-        cols = 5
+        rows = 1
+        cols = 7
         sprite_width = spritesheet_width // cols
         sprite_height = spritesheet_height // rows
-        image = get_sprite(0,0,sprite_width,sprite_height,spritesheet)
-        self.image = pygame.transform.scale(image,(image.get_width()*3, image.get_height()*3))
+        self.animation_list = []
+        self.frame_index = 0
+        self.update_time = pygame.time.get_ticks()
+
+        for i in range(rows):
+            for j in range(cols):
+                img = get_sprite(i, j, sprite_width, sprite_height, spritesheet)
+                img = pygame.transform.scale(img, (img.get_width()*2, img.get_height()*2))
+                self.animation_list.append(img)
+        self.image = self.animation_list[self.frame_index]
+
         self.x = x
         self.y = y
-        self.rect  = self.image.get_rect()
-        self.rect.center = (x,y)
+        self.rect = self.image.get_rect()
+        self.rect.center = (x, y)
 
-    def draw(self,screen):
-        screen.blit(self.image,self.rect)
-    def get_x (self):
+    def draw(self, screen):
+        screen.blit(self.image, self.rect)
+
+    def update(self):
+        animation_cooldown = 200
+
+        self.image = self.animation_list[self.frame_index]
+        if pygame.time.get_ticks() - self.update_time > animation_cooldown:
+            self.update_time = pygame.time.get_ticks()
+            self.frame_index += 1
+        if self.frame_index >= len(self.animation_list):
+            self.frame_index = 0
+
+    def get_x(self):
         return self.x
-    def get_y (self):
+
+    def get_y(self):
         return self.y
 
 class Arquero():
-    def __init__(self,x,y,max_hp,daño):
-        self.max_hp = max_hp,
-        self.daño = daño,
-        self.vivo = True,
+    def __init__(self, x, y, max_hp, daño):
+        self.max_hp = max_hp
+        self.daño = daño
+        self.hp = max_hp  # Añade el campo hp
+        self.vivo = True
         spritesheet = pygame.image.load(f'images/Heroes/Cazadora/cazadora.png')
         spritesheet_width = spritesheet.get_width()
         spritesheet_height = spritesheet.get_height()
@@ -64,28 +108,38 @@ class Arquero():
         cols = 4
         sprite_width = spritesheet_width // cols
         sprite_height = spritesheet_height // rows
-        image = get_sprite(0,0,sprite_width,sprite_height,spritesheet)
-        image = pygame.transform.flip(image,True,False)
-        self.image = pygame.transform.scale(image,(image.get_width()*0.5, image.get_height()*0.5))
+        self.animation_list = []
+        self.frame_index = 0
+        self.update_time = pygame.time.get_ticks()
+
+        for i in range(rows):
+            for j in range(cols):
+                img = get_sprite(i, j, sprite_width, sprite_height, spritesheet)
+                img = pygame.transform.scale(img, (img.get_width()*0.5, img.get_height()*0.5))
+                img = pygame.transform.flip(img, True, False)
+                self.animation_list.append(img)
+
+        self.image = self.animation_list[self.frame_index]
         self.x = x
         self.y = y
-        self.rect  = self.image.get_rect()
-        self.rect.center = (x,y)
+        self.rect = self.image.get_rect()
+        self.rect.center = (x, y)
 
-    def draw(self,screen):
-        screen.blit(self.image,self.rect)
-    def get_x (self):
+    def update(self):
+        animation_cooldown = 200
+
+        self.image = self.animation_list[self.frame_index]
+        if pygame.time.get_ticks() - self.update_time > animation_cooldown:
+            self.update_time = pygame.time.get_ticks()
+            self.frame_index += 1
+        if self.frame_index >= len(self.animation_list):
+            self.frame_index = 0
+
+    def draw(self, screen):
+        screen.blit(self.image, self.rect)
+
+    def get_x(self):
         return self.x
-    def get_y (self):
+
+    def get_y(self):
         return self.y
-
-class Sala():
-    def __init__(self,num,enemies):
-        Enemies = []
-        for enemy in enemies:
-            Enemies.append(enemy)
-        self.Enemies = Enemies
-        self.terminada = False        
-        self.num = num
-
-
