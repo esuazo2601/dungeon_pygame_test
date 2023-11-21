@@ -1,5 +1,5 @@
 import pygame
-from typing import Union, List
+from typing import Union
 from enemies import Esqueleto,Zombie,Bandido,Orco
 from heroes import Mago,Guerrero,Arquero
 
@@ -111,11 +111,8 @@ class Sala():
         self.Enemies.append(enemy)
 
     def check_terminada(self):
-        terminada_temp = True
-        for enemy in self.Enemies:
-            if enemy.hp > 0:
-                terminada_temp = False
-        return terminada_temp
+        if len (self.Enemies) <= 0:
+            return True
 
 class Dungeon():
     def __init__(self):

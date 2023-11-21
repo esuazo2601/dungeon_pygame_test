@@ -1,7 +1,9 @@
 import pygame
+import random
 from heroes import Guerrero,Mago,Arquero
 from enemies import Esqueleto, Orco, Bandido, Zombie
 from others import Character_arrow, Dungeon, Sala, Skill_arrow, Enemy_arrow
+
 # pygame setup
 pygame.init()
 clock = pygame.time.Clock()
@@ -16,12 +18,19 @@ screen_height = 400 + bottom_panel
 screen = pygame.display.set_mode((screen_width,screen_height))
 pygame.display.set_caption('Dungeon')
 
+#load background
 background_image = pygame.image.load('images/Dungeon/background.jpg').convert_alpha()
 background_image = pygame.transform.scale(background_image,(screen_width,screen_height - bottom_panel))
-#load background
+#load panel
 panel_image = pygame.image.load('images/Dungeon/panel.png').convert_alpha()
 panel_image = pygame.transform.scale(panel_image,(screen_width,bottom_panel))
-
+#load win
+win_imge = pygame.image.load('images/victory.png').convert_alpha()
+#load defeat
+def_imge = pygame.image.load('images/defeat.png').convert_alpha()
+#load exit
+exit_image = pygame.image.load('images/exit.png').convert_alpha()
+exit_image = pygame.transform.scale(exit_image,(screen_width,screen_height - bottom_panel))
 ################################ ESTA PARTE CAMBIA DEPENDIENDO DE LA INSTANCIA #########################
 dungeon = Dungeon()
 #Heroes
@@ -53,13 +62,22 @@ sala0.addEnemy(orc0)
 sala0.addEnemy(zombie0)
 sala0.addEnemy(esqueleto0)
 
+sala1 = Sala(0)
+bandit1 = Bandido(screen_width - 70,300,10,10)
+orc1 = Orco(bandit1.get_x()-100,bandit1.get_y()-30,10,10)
+
+sala1.addEnemy(bandit1)
+sala1.addEnemy(orc1)
+
 salas_list = []
 salas_list.append(sala0)
+salas_list.append(sala1)
 dungeon.addSalas(salas_list)
 
 ################################ ESTA PARTE CAMBIA DEPENDIENDO DE LA INSTANCIA #########################
 current_sala = 0
 selected_hero_index = 0
+selected_skill_index = 0
 selected_enemy_index = 0
 
 character_arrow = Character_arrow()
@@ -71,11 +89,14 @@ enemy_arrow.set_target_enemy(dungeon.Salas[current_sala].Enemies[selected_enemy_
 
 ally_turn = True
 confirmed_skill = False
-selected_skill_index = 0
 confirmed_hero = False
+confirmed_attack = False
+total_salas = len(dungeon.Salas)
 
 def draw_bg():
     screen.blit(background_image,(0,0))
+    num_sala = font.render(f'Sala: {current_sala}', True, (0, 255, 255), None)
+    screen.blit(num_sala, (screen_width // 2 - 20,  100))
 def draw_panel():
     screen.blit(panel_image, (0, screen_height - bottom_panel))
 
@@ -90,32 +111,40 @@ def draw_panel():
     skills_hero = dungeon.Heroes[selected_hero_index].Habilidades
     separation = 0  # Mueve esta línea fuera del bucle
     for skill in skills_hero:
-        dmg = skill.daño[0] * dungeon.Heroes[selected_hero_index].get_dmg()
+        dmg = dungeon.Heroes[selected_hero_index].get_dmg() + skill.daño[0]
         skill_desc = f'{skill.nombre} : {dmg} DMG'
         render = font.render(skill_desc, True, (255, 255, 0), None)
         screen.blit(render, (20 + screen_width // 2, screen_height - bottom_panel + 40 + separation))
         separation += 40
 
-
-
 running = True
 while running:
     clock.tick(fps)
     draw_bg()
+    
     for hero in dungeon.Heroes:
-        hero.draw(screen)
-        hero.update(100)
+        if hero.hp > 0:
+            hero.update(100)
+            hero.draw(screen)
+            if hero.hp <= 0:
+                dungeon.Heroes.remove(hero)
 
     draw_panel()
 
-    for enemy_index, enemy in enumerate(dungeon.Salas[current_sala].Enemies):
-        enemy.draw(screen)
-        enemy.draw_hp(screen, font)
-        enemy.update(200)
-
+    for enemy in dungeon.Salas[current_sala].Enemies:
+        if enemy.hp > 0:
+            enemy.draw(screen)
+            enemy.draw_hp(screen, font)
+            enemy.update(200)
+        if enemy.hp <= 0:
+            dungeon.Salas[current_sala].Enemies.remove(enemy)
+            if len(dungeon.Salas[current_sala].Enemies) > 0:
+                enemy_arrow.set_target_enemy(selected_enemy_index % len(dungeon.Salas[current_sala].Enemies))
+    
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
+        
         if ally_turn == True:
             if confirmed_hero == False:
                 if event.type == pygame.KEYDOWN:
@@ -129,6 +158,7 @@ while running:
                         character_arrow.set_target_hero(dungeon.Heroes[selected_hero_index])
                     if event.key == pygame.K_z:
                         confirmed_hero = True
+            
             elif confirmed_hero == True:
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_DOWN:
@@ -139,7 +169,7 @@ while running:
                         confirmed_skill = True
                         print(confirmed_skill)
 
-            if confirmed_hero == True and confirmed_skill == True:
+            if confirmed_hero == True and confirmed_skill == True and len (dungeon.Salas[current_sala].Enemies) > 0:
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_RIGHT:
                         selected_enemy_index = (selected_enemy_index - 1) % len(dungeon.Salas[current_sala].Enemies)
@@ -156,8 +186,8 @@ while running:
                         skill_selected = dungeon.Heroes[selected_hero_index].Habilidades[selected_skill_index]
                         hero_selected.attack(selected_enemy, skill_selected)
                         print(f"Atacar al enemigo {selected_enemy_index + 1} con la habilidad {selected_skill_index + 1}")
-                        # Restablece las variables de selección
-                        confirmed_hero = False
+                        # Restablece las variables de selección 
+                        confirmed_hero = False    
                         confirmed_skill = False
                         selected_enemy_index = 0
                         selected_skill_index = 0
@@ -169,7 +199,23 @@ while running:
     if confirmed_hero and confirmed_skill and ally_turn:
         enemy_arrow.draw(screen)
     
-    character_arrow.draw(screen)
+    if ally_turn == True:
+        character_arrow.draw(screen)
+
+    if dungeon.Salas[current_sala].check_terminada() == True:
+        if current_sala < total_salas-1:
+            current_sala += 1 
+
+    if current_sala == len(dungeon.Salas)-1 and dungeon.Salas[current_sala].check_terminada() == True:
+        screen.blit(exit_image,(0,0))
+
+        for hero in dungeon.Heroes:
+            if hero.hp > 0:
+                hero.update(100)
+                hero.draw(screen)
+        screen.blit(win_imge,(screen_width//2 - 120, 120))
+
+    print(current_sala)
     pygame.display.update()
 
 pygame.quit()

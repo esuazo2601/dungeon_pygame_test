@@ -17,21 +17,40 @@ class Heroe:
         self.max_hp = max_hp
         self.hp = max_hp
         self.vivo = vivo
+
         self.animation_list = []
+        self.attack_animation_list = []
+
         self.frame_index = 0
         self.update_time = pygame.time.get_ticks()
         self.x = x
         self.y = y
+        self.isAttacking = False
 
     def update(self, animation_cooldown):
-        self.image = self.animation_list[self.frame_index]
-        if pygame.time.get_ticks() - self.update_time > animation_cooldown:
-            self.update_time = pygame.time.get_ticks()
-            self.frame_index += 1
-        if self.frame_index >= len(self.animation_list):
-            self.frame_index = 0
+        if self.animation_list:
+            self.image = self.animation_list[self.frame_index]
+            if pygame.time.get_ticks() - self.update_time > animation_cooldown:
+                self.update_time = pygame.time.get_ticks()
+                self.frame_index += 1
+            if self.frame_index >= len(self.animation_list):
+                self.frame_index = 0
+
+    def update_attack(self, animation_cooldown):
+        if self.attack_animation_list:
+            self.image_attack = self.attack_animation_list[self.frame_index]
+            if pygame.time.get_ticks() - self.update_time > animation_cooldown:
+                self.update_time = pygame.time.get_ticks()
+                self.frame_index += 1
+            if self.frame_index >= len(self.attack_animation_list):
+                self.frame_index = 0
+    
     def draw(self, screen):
         screen.blit(self.image, self.rect)
+    
+    def draw_attack(self, screen):
+        if self.image_attack:
+            screen.blit(self.image_attack, self.rect_attack)
 
     def get_x(self):
         return self.x
@@ -47,25 +66,26 @@ class Heroe:
 class Guerrero(Heroe):
     def __init__(self, x, y, max_hp, fuerza):
         super().__init__(x, y, max_hp)
+
         for i in range(8):
             img = pygame.image.load(f'images/Heroes/Guerrero/Idle/{i}.png')
             img = pygame.transform.scale(img, (img.get_width()*3, img.get_height()*3))
             self.animation_list.append(img)
+        
         self.image = self.animation_list[self.frame_index]
-        self.rect = self.image.get_rect()
+        self.rect = self.image.get_rect()  
+        
         self.x = x
         self.y = y
         self.rect.center = (x, y)
         self.fuerza = fuerza
     
     def attack(self, target, skill):
-        damage = self.fuerza * skill.daño[0]
-        target.hp -= damage 
+        damage = skill.daño[0] + self.fuerza
+        target.hp -= damage
 
     def get_dmg(self):
         return self.fuerza
-    
-
 
 class Mago(Heroe):
     def __init__(self, x, y, max_hp, poder_magico):
@@ -91,8 +111,9 @@ class Mago(Heroe):
         self.rect.center = (x, y)
 
     def attack(self, target, skill):
-        damage = self.poder_magico * skill.daño[0]
+        damage = skill.daño[0] + self.poder_magico
         target.hp -= damage 
+        self.isAttacking = True
     
     def get_dmg(self):
         return self.poder_magico
@@ -122,7 +143,7 @@ class Arquero(Heroe):
         self.rect.center = (x, y)
     
     def attack(self, target, skill):
-        damage = self.precision * skill.daño[0]
+        damage = skill.daño[0] + self.precision
         target.hp -= damage 
     
     def get_dmg(self):
