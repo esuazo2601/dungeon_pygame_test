@@ -35,14 +35,14 @@ exit_image = pygame.transform.scale(exit_image,(screen_width,screen_height - bot
 dungeon = Dungeon()
 #Heroes
 heroes_list = []
-knight = Guerrero(120,300,10,5)
+knight = Guerrero(x=120, y=300, max_hp = 2,fuerza = 5)
 knight.add_Habilidad(2,"Espadazo")
 knight.add_Habilidad(3,"Rodillazo")
 
-mago = Mago(knight.get_x()+120,knight.get_y()-50,10,5)
+mago = Mago(x = knight.get_x()+120, y = knight.get_y()-50, max_hp = 10 , poder_magico = 5)
 mago.add_Habilidad(2,"Bola de fuego")
 
-arquero = Arquero(mago.get_x()+60,knight.get_y(),10,10)
+arquero = Arquero(x = mago.get_x()+60, y = knight.get_y(), max_hp=10 , precision = 10)
 arquero.add_Habilidad(3, "Flechazo")
 
 heroes_list.append(knight)
@@ -53,10 +53,10 @@ dungeon.addHeroes(heroes_list)
 #Enemies
 sala0 = Sala(0)
 
-bandit0 = Bandido(screen_width - 70,300,10,2)
-orc0 = Orco(bandit0.get_x()-100,bandit0.get_y()-30,10,3)
-zombie0 = Zombie(orc0.get_x()-80,orc0.get_y()+40,10,1)
-esqueleto0 = Esqueleto(zombie0.get_x()-90,zombie0.get_y()-15,10,2)
+bandit0 = Bandido(x=screen_width - 70,y=300,max_hp=10,daño = 2)
+orc0 = Orco(x=bandit0.get_x()-100,y=bandit0.get_y()-30,max_hp=10,daño = 3)
+zombie0 = Zombie(x=orc0.get_x()-80,y=orc0.get_y()+40,max_hp=10,daño = 1)
+esqueleto0 = Esqueleto(x=zombie0.get_x()-90,y=zombie0.get_y()-15,max_hp=10,daño = 2)
 
 bandit0.addAtaque(2,"Espadazo")
 orc0.addAtaque(2,"Hachazo")
@@ -115,14 +115,18 @@ def draw_panel():
         screen.blit(render, (20, screen_height - bottom_panel + 40 + sep))
         sep += 40
 
-    skills_hero = dungeon.Heroes[selected_hero_index].Habilidades
-    separation = 0  # Mueve esta línea fuera del bucle
-    for skill in skills_hero:
-        dmg = dungeon.Heroes[selected_hero_index].get_dmg() + skill.daño[0]
-        skill_desc = f'{skill.nombre} : {dmg} DMG'
-        render = font.render(skill_desc, True, (255, 255, 0), None)
-        screen.blit(render, (20 + screen_width // 2, screen_height - bottom_panel + 40 + separation))
-        separation += 40
+    
+    if len(dungeon.Heroes) > 0:  # Verifica si hay héroes vivos
+        selected_hero = dungeon.Heroes[selected_hero_index]
+        if selected_hero.vivo == True:  # Verifica si el héroe seleccionado está vivo
+            skills_hero = selected_hero.Habilidades
+            separation = 0
+            for skill in skills_hero:
+                dmg = selected_hero.get_dmg() + skill.daño[0]
+                skill_desc = f'{skill.nombre} : {dmg} DMG'
+                render = font.render(skill_desc, True, (255, 255, 0), None)
+                screen.blit(render, (20 + screen_width // 2, screen_height - bottom_panel + 40 + separation))
+                separation += 40
 
 
 damage_text_group = pygame.sprite.Group()
@@ -231,6 +235,9 @@ while running:
                 hero.update(100)
                 hero.draw(screen)
         screen.blit(win_imge,(screen_width//2 - 120, 120))
+
+    if len (dungeon.Heroes) <= 0:
+        screen.blit(def_imge,(screen_width//2 - 120, 120))
 
     if not ally_turn:
         random_enemy_index = random.randint(0,len(dungeon.Salas[current_sala].Enemies)-1)
