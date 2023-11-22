@@ -1,5 +1,7 @@
 import pygame
 
+red = (255,0,0)
+
 def get_sprite(row, col, sprite_width, sprite_height, spritesheet):
     x = col * sprite_width
     y = row * sprite_height
@@ -35,22 +37,9 @@ class Heroe:
                 self.frame_index += 1
             if self.frame_index >= len(self.animation_list):
                 self.frame_index = 0
-
-    def update_attack(self, animation_cooldown):
-        if self.attack_animation_list:
-            self.image_attack = self.attack_animation_list[self.frame_index]
-            if pygame.time.get_ticks() - self.update_time > animation_cooldown:
-                self.update_time = pygame.time.get_ticks()
-                self.frame_index += 1
-            if self.frame_index >= len(self.attack_animation_list):
-                self.frame_index = 0
     
     def draw(self, screen):
         screen.blit(self.image, self.rect)
-    
-    def draw_attack(self, screen):
-        if self.image_attack:
-            screen.blit(self.image_attack, self.rect_attack)
 
     def get_x(self):
         return self.x
@@ -80,9 +69,13 @@ class Guerrero(Heroe):
         self.rect.center = (x, y)
         self.fuerza = fuerza
     
-    def attack(self, target, skill):
+    def attack(self, target, skill, damage_text_group, font):
         damage = skill.daño[0] + self.fuerza
-        target.hp -= damage
+        target.hp -= damage 
+        self.isAttacking = True
+        damage_text = DamageText(target.rect.centerx, target.rect.y,str(damage),red,font)
+        damage_text_group.add(damage_text)
+
 
     def get_dmg(self):
         return self.fuerza
@@ -110,10 +103,13 @@ class Mago(Heroe):
         self.rect = self.image.get_rect()
         self.rect.center = (x, y)
 
-    def attack(self, target, skill):
+    def attack(self, target, skill, damage_text_group, font):
         damage = skill.daño[0] + self.poder_magico
         target.hp -= damage 
         self.isAttacking = True
+        damage_text = DamageText(target.rect.centerx, target.rect.y,str(damage),red,font)
+        damage_text_group.add(damage_text)
+
     
     def get_dmg(self):
         return self.poder_magico
@@ -142,10 +138,26 @@ class Arquero(Heroe):
         self.rect = self.image.get_rect()
         self.rect.center = (x, y)
     
-    def attack(self, target, skill):
+    def attack(self, target, skill, damage_text_group, font):
         damage = skill.daño[0] + self.precision
         target.hp -= damage 
+        self.isAttacking = True
+        damage_text = DamageText(target.rect.centerx, target.rect.y,str(damage),red,font)
+        damage_text_group.add(damage_text)
     
     def get_dmg(self):
         return self.precision
 
+class DamageText(pygame.sprite.Sprite):
+    def __init__(self,x,y,damage,colour, font):
+        pygame.sprite.Sprite.__init__(self)
+        self.image = font.render(damage,True,colour)
+        self.rect = self.image.get_rect()
+        self.rect.center = (x,y)
+        self.counter = 0
+
+    def update (self):
+        self.rect.y -= 1
+        self.counter +=1
+        if self.counter > 30:
+            self.kill()

@@ -6,6 +6,11 @@ def get_sprite(row, col, sprite_width, sprite_height, spritesheet):
     sprite = spritesheet.subsurface(pygame.Rect(x, y, sprite_width, sprite_height))
     return sprite
 
+class Ataque:
+    def __init__(self, daño, nombre):
+        self.daño = daño
+        self.nombre = nombre
+
 class Enemigo:
     def __init__(self, x, y, max_hp, daño, vivo=True):
         self.max_hp = max_hp
@@ -15,6 +20,9 @@ class Enemigo:
         self.animation_list = []
         self.frame_index = 0
         self.update_time = pygame.time.get_ticks()
+        self.x = x
+        self.y = y
+        
 
     def update(self, animation_cooldown):
         self.image = self.animation_list[self.frame_index]
@@ -36,6 +44,15 @@ class Enemigo:
     def draw_hp(self, screen, font):
         text = font.render(f'{self.hp} HP', True, (255, 0, 0), None)
         screen.blit(text, (self.get_x() - 20, self.get_y() - 100))
+
+    def attack (self,target,damage_text_group, font):
+        dmg = self.Ataque.daño + self.daño
+        target.hp -= dmg
+        damage_text = DamageText(target.rect.centerx, target.rect.y,str(dmg),(255,0,0),font)
+        damage_text_group.add(damage_text)
+
+    def addAtaque(self, daño, nombre):
+        self.Ataque = Ataque(daño,nombre)
 
 
 class Bandido(Enemigo):
@@ -108,3 +125,18 @@ class Esqueleto(Enemigo):
     def draw_hp(self, screen, font):
         text = font.render(f'{self.hp} HP', True, (255, 0, 0), None)
         screen.blit(text, (self.get_x() - 20, self.get_y() - 100))
+
+
+class DamageText(pygame.sprite.Sprite):
+    def __init__(self,x,y,damage,colour, font):
+        pygame.sprite.Sprite.__init__(self)
+        self.image = font.render(damage,True,colour)
+        self.rect = self.image.get_rect()
+        self.rect.center = (x,y)
+        self.counter = 0
+
+    def update (self):
+        self.rect.y -= 1
+        self.counter +=1
+        if self.counter > 30:
+            self.kill()

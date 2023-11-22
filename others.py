@@ -1,7 +1,7 @@
 import pygame
 from typing import Union
 from enemies import Esqueleto,Zombie,Bandido,Orco
-from heroes import Mago,Guerrero,Arquero
+from heroes import Mago
 
 def get_sprite(row, col, sprite_width, sprite_height, spritesheet):
     x = col * sprite_width
@@ -125,5 +125,4 @@ class Dungeon():
     def addSalas (self,salas):
         for sala in salas:
             self.Salas.append(sala)
-
 

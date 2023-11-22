@@ -52,10 +52,16 @@ heroes_list.append(arquero)
 dungeon.addHeroes(heroes_list)
 #Enemies
 sala0 = Sala(0)
-bandit0 = Bandido(screen_width - 70,300,10,10)
-orc0 = Orco(bandit0.get_x()-100,bandit0.get_y()-30,10,10)
-zombie0 = Zombie(orc0.get_x()-80,orc0.get_y()+40,10,10)
-esqueleto0 = Esqueleto(zombie0.get_x()-90,zombie0.get_y()-15,10,10)
+
+bandit0 = Bandido(screen_width - 70,300,10,2)
+orc0 = Orco(bandit0.get_x()-100,bandit0.get_y()-30,10,3)
+zombie0 = Zombie(orc0.get_x()-80,orc0.get_y()+40,10,1)
+esqueleto0 = Esqueleto(zombie0.get_x()-90,zombie0.get_y()-15,10,2)
+
+bandit0.addAtaque(2,"Espadazo")
+orc0.addAtaque(2,"Hachazo")
+zombie0.addAtaque(2,"Mordida")
+esqueleto0.addAtaque(2,"Lanzamiento de craneo")
 
 sala0.addEnemy(bandit0)
 sala0.addEnemy(orc0)
@@ -63,8 +69,11 @@ sala0.addEnemy(zombie0)
 sala0.addEnemy(esqueleto0)
 
 sala1 = Sala(0)
+
 bandit1 = Bandido(screen_width - 70,300,10,10)
 orc1 = Orco(bandit1.get_x()-100,bandit1.get_y()-30,10,10)
+bandit1.addAtaque(2,"Espadazo")
+orc1.addAtaque(2,"Hachazo")
 
 sala1.addEnemy(bandit1)
 sala1.addEnemy(orc1)
@@ -100,13 +109,11 @@ def draw_bg():
 def draw_panel():
     screen.blit(panel_image, (0, screen_height - bottom_panel))
 
-    health_guerrero = font.render(f'Guerrero: {dungeon.Heroes[0].hp} HP', True, (255, 255, 255), None)
-    health_mago = font.render(f'Mago: {dungeon.Heroes[1].hp} HP', True, (255, 255, 255), None)
-    health_arquero = font.render(f'Arquera: {dungeon.Heroes[2].hp} HP', True, (255, 255, 255), None)
-
-    screen.blit(health_guerrero, (20, screen_height - bottom_panel + 40))
-    screen.blit(health_mago, (20, screen_height - bottom_panel + 80))
-    screen.blit(health_arquero, (20, screen_height - bottom_panel + 120))
+    sep = 0
+    for hero in dungeon.Heroes:
+        render = font.render(f'{hero.__class__.__name__}: {hero.hp} HP', True, (255, 255, 255), None)
+        screen.blit(render, (20, screen_height - bottom_panel + 40 + sep))
+        sep += 40
 
     skills_hero = dungeon.Heroes[selected_hero_index].Habilidades
     separation = 0  # Mueve esta línea fuera del bucle
@@ -117,6 +124,9 @@ def draw_panel():
         screen.blit(render, (20 + screen_width // 2, screen_height - bottom_panel + 40 + separation))
         separation += 40
 
+
+damage_text_group = pygame.sprite.Group()
+
 running = True
 while running:
     clock.tick(fps)
@@ -126,8 +136,10 @@ while running:
         if hero.hp > 0:
             hero.update(100)
             hero.draw(screen)
-            if hero.hp <= 0:
-                dungeon.Heroes.remove(hero)
+        elif hero.hp <= 0: 
+            hero.vivo = False
+            dungeon.Heroes.remove(hero)
+
 
     draw_panel()
 
@@ -141,6 +153,9 @@ while running:
             if len(dungeon.Salas[current_sala].Enemies) > 0:
                 enemy_arrow.set_target_enemy(selected_enemy_index % len(dungeon.Salas[current_sala].Enemies))
     
+    damage_text_group.update()
+    damage_text_group.draw(screen)
+
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
@@ -167,7 +182,6 @@ while running:
                         selected_skill_index = (selected_skill_index - 1) % len(dungeon.Heroes[selected_hero_index].Habilidades)
                     if event.key == pygame.K_z:
                         confirmed_skill = True
-                        print(confirmed_skill)
 
             if confirmed_hero == True and confirmed_skill == True and len (dungeon.Salas[current_sala].Enemies) > 0:
                 if event.type == pygame.KEYDOWN:
@@ -184,14 +198,17 @@ while running:
                         selected_enemy = dungeon.Salas[current_sala].Enemies[selected_enemy_index]
                         hero_selected = dungeon.Heroes[selected_hero_index]
                         skill_selected = dungeon.Heroes[selected_hero_index].Habilidades[selected_skill_index]
-                        hero_selected.attack(selected_enemy, skill_selected)
-                        print(f"Atacar al enemigo {selected_enemy_index + 1} con la habilidad {selected_skill_index + 1}")
+                        hero_selected.attack(selected_enemy, skill_selected,damage_text_group, font)
+                
+                        type_of_enemy = selected_enemy.__class__.__name__
+                        type_of_ally = hero_selected.__class__.__name__
+                        
                         # Restablece las variables de selección 
                         confirmed_hero = False    
                         confirmed_skill = False
                         selected_enemy_index = 0
                         selected_skill_index = 0
-                        #ally_turn = False
+                        ally_turn = False
                         
     if confirmed_hero == True and ally_turn == True:
         skill_arrow.draw(screen, 330 + screen_width // 2, screen_height - bottom_panel + 40 + selected_skill_index * 40)
@@ -215,7 +232,17 @@ while running:
                 hero.draw(screen)
         screen.blit(win_imge,(screen_width//2 - 120, 120))
 
-    print(current_sala)
+    if not ally_turn:
+        random_enemy_index = random.randint(0,len(dungeon.Salas[current_sala].Enemies)-1)
+        random_ally_index = random.randint(0,len(dungeon.Heroes)-1)
+        
+        enemy_selected = dungeon.Salas[current_sala].Enemies[random_enemy_index]
+        ally_selected = dungeon.Heroes[random_ally_index]
+
+        enemy_selected.attack(ally_selected, damage_text_group, font)
+
+        ally_turn = True
+
     pygame.display.update()
 
 pygame.quit()
