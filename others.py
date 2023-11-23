@@ -100,18 +100,18 @@ class Enemy_arrow():
     def get_y (self):
         return self.y
 
-
 class Sala():
-    def __init__(self,num):
+    def __init__(self, num):
         self.Enemies = []
         self.terminada = False        
         self.num = num
+        self.sala_siguiente = None  
     
-    def addEnemy(self,enemy: Union[Orco,Esqueleto,Zombie,Bandido]):
+    def addEnemy(self, enemy: Union[Orco, Esqueleto, Zombie, Bandido]):
         self.Enemies.append(enemy)
 
     def check_terminada(self):
-        if len (self.Enemies) <= 0:
+        if len(self.Enemies) <= 0:
             return True
 
 class Dungeon():
@@ -119,10 +119,12 @@ class Dungeon():
         self.Heroes = []
         self.Salas = []
     
-    def addHeroes (self, heroes):
+    def addHeroes(self, heroes):
         for heroe in heroes:
             self.Heroes.append(heroe)
-    def addSalas (self,salas):
-        for sala in salas:
-            self.Salas.append(sala)
+    
+    def addSala(self, sala):
+        self.Salas.append(sala)
 
+    def addSalida (self,salida):
+        self.salida = salida
